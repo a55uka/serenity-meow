@@ -400,3 +400,22 @@ args = ["make", "run_example", "e19_interactions_endpoint"]
 [tasks.dev_build_19]
 command = "cargo"
 args = ["make", "build_example", "e19_interactions_endpoint"]
+
+[tasks.20]
+alias = "run_20"
+
+[tasks.run_20]
+command = "cargo"
+args = ["make", "run_example_release", "e20_interactions_endpoint"]
+
+[tasks.build_20]
+command = "cargo"
+args = ["make", "build_example_release", "e20_interactions_endpoint"]
+
+[tasks.dev_run_20]
+command = "cargo"
+args = ["make", "run_example", "e20_interactions_endpoint"]
+
+[tasks.dev_build_20]
+command = "cargo"
+args = ["make", "build_example", "e20_interactions_endpoint"]
