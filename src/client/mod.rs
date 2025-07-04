@@ -76,6 +76,7 @@ pub struct ClientBuilder {
     event_handlers: Vec<Arc<dyn EventHandler>>,
     raw_event_handlers: Vec<Arc<dyn RawEventHandler>>,
     presence: PresenceData,
+    self_bot: bool,
 }
 
 #[cfg(feature = "gateway")]
@@ -94,6 +95,25 @@ impl ClientBuilder {
             event_handlers: vec![],
             raw_event_handlers: vec![],
             presence: PresenceData::default(),
+            self_bot: false,
+        }
+    }
+    
+    fn _new_self_bot(http: Http) -> Self {
+        Self {
+            data: TypeMap::new(),
+            http,
+            intents: GatewayIntents::no_intents(),
+            #[cfg(feature = "cache")]
+            cache_settings: CacheSettings::default(),
+            #[cfg(feature = "framework")]
+            framework: None,
+            #[cfg(feature = "voice")]
+            voice_manager: None,
+            event_handlers: vec![],
+            raw_event_handlers: vec![],
+            presence: PresenceData::default(),
+            self_bot: true,
         }
     }
 
@@ -104,7 +124,11 @@ impl ClientBuilder {
     /// framework via the [`Self::framework`] method, otherwise awaiting the builder will cause a
     /// panic.
     pub fn new(token: impl AsRef<str>, intents: GatewayIntents) -> Self {
-        Self::new_(Http::new(token.as_ref()), intents)
+        Self::new_(Http::new(token.as_ref(), false), intents)
+    }
+
+    pub fn new_self_bot(token: impl AsRef<str>) -> Self {
+        Self::_new_self_bot(Http::new(token.as_ref(), true))
     }
 
     /// Construct a new builder with a [`Http`] instance to calls methods on for the client
@@ -120,7 +144,7 @@ impl ClientBuilder {
     /// Sets a token for the bot. If the token is not prefixed "Bot ", this method will
     /// automatically do so.
     pub fn token(mut self, token: impl AsRef<str>) -> Self {
-        self.http = Http::new(token.as_ref());
+        self.http = Http::new(token.as_ref(), self.self_bot);
 
         self
     }
@@ -259,7 +283,9 @@ impl ClientBuilder {
     /// [Privileged intents]: https://discord.com/developers/docs/topics/gateway#privileged-intents
     /// [the bot must be verified]: https://support.discord.com/hc/en-us/articles/360040720412-Bot-Verification-and-Data-Whitelisting
     pub fn intents(mut self, intents: GatewayIntents) -> Self {
-        self.intents = intents;
+        if !self.self_bot {
+            self.intents = intents;
+        }
 
         self
     }
@@ -330,7 +356,7 @@ impl IntoFuture for ClientBuilder {
 
     type IntoFuture = BoxFuture<'static, Result<Client>>;
 
-    #[instrument(skip(self))]
+    // #[instrument(skip(self))]
     fn into_future(self) -> Self::IntoFuture {
         let data = Arc::new(RwLock::new(self.data));
         #[cfg(feature = "framework")]
@@ -388,7 +414,7 @@ impl IntoFuture for ClientBuilder {
                 http: Arc::clone(&http),
                 intents,
                 presence: Some(presence),
-            });
+            }, self.self_bot);
 
             let client = Client {
                 data,
@@ -631,6 +657,10 @@ pub struct Client {
 impl Client {
     pub fn builder(token: impl AsRef<str>, intents: GatewayIntents) -> ClientBuilder {
         ClientBuilder::new(token, intents)
+    }
+
+    pub fn builder_self_bot(token: impl AsRef<str>) -> ClientBuilder {
+        ClientBuilder::new_self_bot(token)
     }
 
     /// Establish the connection and start listening for events.

@@ -90,6 +90,7 @@ pub struct Ratelimiter {
     token: SecretString,
     absolute_ratelimits: bool,
     ratelimit_callback: Box<dyn Fn(RatelimitInfo) + Send + Sync>,
+    self_bot: bool,
 }
 
 impl fmt::Debug for Ratelimiter {
@@ -110,11 +111,11 @@ impl Ratelimiter {
     ///
     /// The bot token must be prefixed with `"Bot "`. The ratelimiter does not prefix it.
     #[must_use]
-    pub fn new(client: Client, token: impl Into<String>) -> Self {
-        Self::new_(client, token.into())
+    pub fn new(client: Client, token: impl Into<String>, self_bot: bool) -> Self {
+        Self::new_(client, token.into(), self_bot)
     }
 
-    fn new_(client: Client, token: String) -> Self {
+    fn new_(client: Client, token: String, self_bot: bool) -> Self {
         Self {
             client,
             global: Arc::default(),
@@ -122,6 +123,7 @@ impl Ratelimiter {
             token: SecretString::new(token),
             ratelimit_callback: Box::new(|_| {}),
             absolute_ratelimits: false,
+            self_bot,
         }
     }
 
@@ -196,7 +198,7 @@ impl Ratelimiter {
 
             bucket.lock().await.pre_hook(&req, &self.ratelimit_callback).await;
 
-            let request = req.clone().build(&self.client, self.token.expose_secret(), None)?;
+            let request = req.clone().build(&self.client, self.token.expose_secret(), None, self.self_bot)?;
             let response = self.client.execute(request.build()?).await?;
 
             // Check if the request got ratelimited by checking for status 429, and if so, sleep

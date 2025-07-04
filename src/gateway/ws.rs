@@ -75,7 +75,7 @@ enum WebSocketMessageData<'a> {
         token: &'a str,
         large_threshold: u8,
         shard: &'a ShardInfo,
-        intents: GatewayIntents,
+        intents: Option<GatewayIntents>,
         properties: IdentifyProperties,
         presence: PresenceUpdateMessage<'a>,
     },
@@ -238,32 +238,59 @@ impl WsClient {
         token: &str,
         intents: GatewayIntents,
         presence: &PresenceData,
+        self_bot: bool,
     ) -> Result<()> {
         let activities: Vec<_> = presence.activity.iter().collect();
         let now = SystemTime::now();
 
         debug!("[{:?}] Identifying", shard);
 
+        let identify = match self_bot {
+            true => {
+                WebSocketMessageData::Identify {
+                    token,
+                    shard,
+                    intents: None,
+                    compress: true,
+                    large_threshold: constants::LARGE_THRESHOLD,
+                    properties: IdentifyProperties {
+                        browser: "Firefox",
+                        device: "Nintendo 3DS",
+                        os: consts::OS,
+                    },
+                    presence: PresenceUpdateMessage {
+                        afk: false,
+                        since: now,
+                        status: presence.status.name(),
+                        activities: &activities,
+                    }
+                }
+            }
+            false => {
+                WebSocketMessageData::Identify {
+                    token,
+                    shard,
+                    intents: Some(intents),
+                    compress: true,
+                    large_threshold: constants::LARGE_THRESHOLD,
+                    properties: IdentifyProperties {
+                        browser: "serenity",
+                        device: "serenity",
+                        os: consts::OS,
+                    },
+                    presence: PresenceUpdateMessage {
+                        afk: false,
+                        since: now,
+                        status: presence.status.name(),
+                        activities: &activities,
+                    }
+                }
+            }
+        };
+
         let msg = WebSocketMessage {
             op: Opcode::Identify,
-            d: WebSocketMessageData::Identify {
-                token,
-                shard,
-                intents,
-                compress: true,
-                large_threshold: constants::LARGE_THRESHOLD,
-                properties: IdentifyProperties {
-                    browser: "serenity",
-                    device: "serenity",
-                    os: consts::OS,
-                },
-                presence: PresenceUpdateMessage {
-                    afk: false,
-                    since: now,
-                    status: presence.status.name(),
-                    activities: &activities,
-                },
-            },
+            d: identify,
         };
 
         self.send_json(&msg).await

@@ -46,7 +46,7 @@ use crate::model::prelude::*;
 /// # use serenity::http::HttpBuilder;
 /// # fn run() {
 /// let http =
-///     HttpBuilder::new("token").proxy("http://127.0.0.1:3000").ratelimiter_disabled(true).build();
+///     HttpBuilder::new("token", false).proxy("http://127.0.0.1:3000").ratelimiter_disabled(true).build();
 /// # }
 /// ```
 #[must_use]
@@ -58,20 +58,22 @@ pub struct HttpBuilder {
     proxy: Option<String>,
     application_id: Option<ApplicationId>,
     default_allowed_mentions: Option<CreateAllowedMentions>,
+    self_bot: bool,
 }
 
 impl HttpBuilder {
     /// Construct a new builder to call methods on for the HTTP construction. The `token` will
     /// automatically be prefixed "Bot " if not already.
-    pub fn new(token: impl AsRef<str>) -> Self {
+    pub fn new(token: impl AsRef<str>, self_bot: bool) -> Self {
         Self {
             client: None,
             ratelimiter: None,
             ratelimiter_disabled: false,
-            token: SecretString::new(parse_token(token)),
+            token: SecretString::new(parse_token(token, self_bot)),
             proxy: None,
             application_id: None,
             default_allowed_mentions: None,
+            self_bot,
         }
     }
 
@@ -83,8 +85,8 @@ impl HttpBuilder {
 
     /// Sets a token for the bot. If the token is not prefixed "Bot ", this method will
     /// automatically do so.
-    pub fn token(mut self, token: impl AsRef<str>) -> Self {
-        self.token = SecretString::new(parse_token(token));
+    pub fn token(mut self, token: impl AsRef<str>, self_bot: bool) -> Self {
+        self.token = SecretString::new(parse_token(token, self_bot));
         self
     }
 
@@ -151,7 +153,7 @@ impl HttpBuilder {
 
         let ratelimiter = (!self.ratelimiter_disabled).then(|| {
             self.ratelimiter
-                .unwrap_or_else(|| Ratelimiter::new(client.clone(), self.token.expose_secret()))
+                .unwrap_or_else(|| Ratelimiter::new(client.clone(), self.token.expose_secret(), self.self_bot))
         });
 
         Http {
@@ -161,12 +163,17 @@ impl HttpBuilder {
             token: self.token,
             application_id,
             default_allowed_mentions: self.default_allowed_mentions,
+            self_bot: self.self_bot,
         }
     }
 }
 
-fn parse_token(token: impl AsRef<str>) -> String {
+fn parse_token(token: impl AsRef<str>, self_bot: bool) -> String {
     let token = token.as_ref().trim();
+
+    if self_bot {
+        return token.to_string()
+    }
 
     if token.starts_with("Bot ") || token.starts_with("Bearer ") {
         token.to_string()
@@ -200,12 +207,13 @@ pub struct Http {
     token: SecretString,
     application_id: AtomicU64,
     pub default_allowed_mentions: Option<CreateAllowedMentions>,
+    self_bot: bool,
 }
 
 impl Http {
     #[must_use]
-    pub fn new(token: &str) -> Self {
-        HttpBuilder::new(token).build()
+    pub fn new(token: &str, self_bot: bool) -> Self {
+        HttpBuilder::new(token, self_bot).build()
     }
 
     pub fn application_id(&self) -> Option<ApplicationId> {
@@ -4990,7 +4998,7 @@ impl Http {
         let response = if let Some(ratelimiter) = &self.ratelimiter {
             ratelimiter.perform(req).await?
         } else {
-            let request = req.build(&self.client, self.token(), self.proxy.as_deref())?.build()?;
+            let request = req.build(&self.client, self.token(), self.proxy.as_deref(), self.self_bot)?.build()?;
             self.client.execute(request).await?
         };
 

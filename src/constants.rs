@@ -30,6 +30,11 @@ pub const USER_AGENT: &str = concat!(
     ")"
 );
 
+/// The [UserAgent] sent along with every request (for user bots).
+///
+/// [UserAgent]: ::reqwest::header::USER_AGENT_USER_BOT
+pub const USER_AGENT_USER_BOT: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.10 Safari/605.1.1";
+
 enum_number! {
     /// An enum representing the [gateway opcodes].
     ///

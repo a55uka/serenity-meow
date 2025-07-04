@@ -107,7 +107,7 @@ impl Shard {
     ///
     /// // retrieve the gateway response, which contains the URL to connect to
     /// let gateway = Arc::new(Mutex::new(http.get_gateway().await?.url));
-    /// let shard = Shard::new(gateway, &token, shard_info, GatewayIntents::all(), None).await?;
+    /// let shard = Shard::new(gateway, &token, shard_info, GatewayIntents::all(), None, false).await?;
     ///
     /// // at this point, you can create a `loop`, and receive events and match
     /// // their variants
@@ -586,7 +586,7 @@ impl Shard {
     /// #          total: 1,
     /// #     };
     /// #
-    /// #     let mut shard = Shard::new(mutex.clone(), "", shard_info, GatewayIntents::all(), None).await?;
+    /// #     let mut shard = Shard::new(mutex.clone(), "", shard_info, GatewayIntents::all(), None, false).await?;
     /// #
     /// use serenity::model::id::GuildId;
     ///
@@ -613,7 +613,7 @@ impl Shard {
     /// #          id: ShardId(0),
     /// #          total: 1,
     /// #     };
-    /// #     let mut shard = Shard::new(mutex.clone(), "", shard_info, GatewayIntents::all(), None).await?;
+    /// #     let mut shard = Shard::new(mutex.clone(), "", shard_info, GatewayIntents::all(), None, false).await?;
     /// #
     /// use serenity::model::id::GuildId;
     ///
@@ -657,8 +657,8 @@ impl Shard {
     /// # Errors
     /// Errors if there is a problem with the WS connection.
     #[instrument(skip(self))]
-    pub async fn identify(&mut self) -> Result<()> {
-        self.client.send_identify(&self.info, &self.token, self.intents, &self.presence).await?;
+    pub async fn identify(&mut self, self_bot: bool) -> Result<()> {
+        self.client.send_identify(&self.info, &self.token, self.intents, &self.presence, self_bot).await?;
 
         self.last_heartbeat_sent = Some(Instant::now());
         self.stage = ConnectionStage::Identifying;

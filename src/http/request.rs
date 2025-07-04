@@ -70,6 +70,7 @@ impl<'a> Request<'a> {
         client: &Client,
         token: &str,
         proxy: Option<&str>,
+        self_bot: bool,
     ) -> Result<ReqwestRequestBuilder> {
         let mut path = self.route.path().to_string();
 
@@ -89,7 +90,11 @@ impl<'a> Request<'a> {
             .request(self.method.reqwest_method(), Url::parse(&path).map_err(HttpError::Url)?);
 
         let mut headers = self.headers.unwrap_or_default();
-        headers.insert(USER_AGENT, HeaderValue::from_static(constants::USER_AGENT));
+        if self_bot {
+            headers.insert(USER_AGENT, HeaderValue::from_static(constants::USER_AGENT_USER_BOT));
+        } else {
+            headers.insert(USER_AGENT, HeaderValue::from_static(constants::USER_AGENT));
+        }
         headers
             .insert(AUTHORIZATION, HeaderValue::from_str(token).map_err(HttpError::InvalidHeader)?);
 

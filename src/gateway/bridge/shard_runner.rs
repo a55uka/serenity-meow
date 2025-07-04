@@ -47,11 +47,12 @@ pub struct ShardRunner {
     pub http: Arc<Http>,
     #[cfg(feature = "collector")]
     pub(crate) collectors: Arc<std::sync::Mutex<Vec<CollectorCallback>>>,
+    self_bot: bool,
 }
 
 impl ShardRunner {
     /// Creates a new runner for a Shard.
-    pub fn new(opt: ShardRunnerOptions) -> Self {
+    pub fn new(opt: ShardRunnerOptions, self_bot: bool) -> Self {
         let (tx, rx) = mpsc::unbounded();
 
         Self {
@@ -71,6 +72,7 @@ impl ShardRunner {
             http: opt.http,
             #[cfg(feature = "collector")]
             collectors: Arc::new(std::sync::Mutex::new(vec![])),
+            self_bot,
         }
     }
 
@@ -216,7 +218,7 @@ impl ShardRunner {
             },
             ShardAction::Reconnect(ReconnectType::Resume) => self.shard.resume().await,
             ShardAction::Heartbeat => self.shard.heartbeat().await,
-            ShardAction::Identify => self.shard.identify().await,
+            ShardAction::Identify => self.shard.identify(self.self_bot).await,
         }
     }
 

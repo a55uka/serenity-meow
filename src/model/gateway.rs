@@ -442,6 +442,7 @@ bitflags! {
     #[cfg_attr(feature = "typesize", derive(typesize::derive::TypeSize))]
     #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
     pub struct GatewayIntents: u64 {
+        const NO_INTENTS = 0;
         /// Enables the following gateway events:
         ///  - GUILD_CREATE
         ///  - GUILD_UPDATE
@@ -604,6 +605,11 @@ impl GatewayIntents {
         // bitflags don't support const evaluation. Workaround.
         // See: https://github.com/bitflags/bitflags/issues/180
         Self::GUILD_MEMBERS.union(Self::GUILD_PRESENCES).union(Self::MESSAGE_CONTENT)
+    }
+
+    #[must_use] // Um - (talked to sov) - Oh okay
+    pub const fn no_intents() -> GatewayIntents {
+        Self::NO_INTENTS
     }
 }
 

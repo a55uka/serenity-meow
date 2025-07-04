@@ -122,7 +122,7 @@ impl ShardManager {
     /// Creates a new shard manager, returning both the manager and a monitor for usage in a
     /// separate thread.
     #[must_use]
-    pub fn new(opt: ShardManagerOptions) -> (Arc<Self>, Receiver<Result<(), GatewayError>>) {
+    pub fn new(opt: ShardManagerOptions, self_bot: bool) -> (Arc<Self>, Receiver<Result<(), GatewayError>>) {
         let (return_value_tx, return_value_rx) = mpsc::unbounded();
         let (shard_queue_tx, shard_queue_rx) = mpsc::unbounded();
 
@@ -160,6 +160,7 @@ impl ShardManager {
             http: opt.http,
             intents: opt.intents,
             presence: opt.presence,
+            self_bot,
         };
 
         spawn_named("shard_queuer::run", async move {

@@ -78,6 +78,7 @@ pub struct ShardQueuer {
     pub http: Arc<Http>,
     pub intents: GatewayIntents,
     pub presence: Option<PresenceData>,
+    pub(crate) self_bot: bool,
 }
 
 impl ShardQueuer {
@@ -166,14 +167,7 @@ impl ShardQueuer {
     async fn start(&mut self, id: ShardId, total: u32) -> Result<()> {
         let shard_info = ShardInfo::new(id, total);
 
-        let mut shard = Shard::new(
-            Arc::clone(&self.ws_url),
-            self.http.token(),
-            shard_info,
-            self.intents,
-            self.presence.clone(),
-        )
-        .await?;
+        let mut shard = Shard::new(Arc::clone(&self.ws_url), self.http.token(), shard_info, self.intents, self.presence.clone()).await?;
 
         let cloned_http = Arc::clone(&self.http);
         shard.set_application_id_callback(move |id| cloned_http.set_application_id(id));
@@ -191,7 +185,7 @@ impl ShardQueuer {
             #[cfg(feature = "cache")]
             cache: Arc::clone(&self.cache),
             http: Arc::clone(&self.http),
-        });
+        }, self.self_bot);
 
         let runner_info = ShardRunnerInfo {
             latency: None,
