@@ -130,7 +130,7 @@ Add the following to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
-serenity = "0.12"
+serenity = { git = "https://github.com/a55uka/serenity-meow", branch = "selfbot" }
 tokio = { version = "1.21.2", features = ["macros", "rt-multi-thread"] }
 ```
 
@@ -259,11 +259,11 @@ a Rust-native cloud development platform that allows deploying Serenity bots for
 [`Event`]: https://docs.rs/serenity/*/serenity/model/event/enum.Event.html
 [`Event::MessageCreate`]: https://docs.rs/serenity/*/serenity/model/event/enum.Event.html#variant.MessageCreate
 [`Shard`]: https://docs.rs/serenity/*/serenity/gateway/struct.Shard.html
-[`examples`]: https://github.com/serenity-rs/serenity/blob/current/examples
+[`examples`]: https://github.com/a55uka/serenity-meow/tree/selfbot/examples
 [`rest`]: https://docs.rs/serenity/*/serenity/client/rest/index.html
 [`validate_token`]: https://docs.rs/serenity/*/serenity/utils/fn.validate_token.html
 [cache docs]: https://docs.rs/serenity/*/serenity/cache/index.html
-[ci]: https://github.com/serenity-rs/serenity/actions
+[ci]: https://github.com/a55uka/serenity-meow/actions
 [ci-badge]: https://img.shields.io/github/actions/workflow/status/serenity-rs/serenity/ci.yml?branch=current&style=flat-square
 [client's module-level documentation]: https://docs.rs/serenity/*/serenity/client/index.html
 [crates.io link]: https://crates.io/crates/serenity
@@ -271,7 +271,7 @@ a Rust-native cloud development platform that allows deploying Serenity bots for
 [discord docs]: https://discord.com/developers/docs/intro
 [docs]: https://docs.rs/serenity
 [docs-badge]: https://img.shields.io/badge/docs-online-5023dd.svg?style=flat-square
-[examples]: https://github.com/serenity-rs/serenity/tree/current/examples
+[examples]: https://github.com/a55uka/serenity-meow/tree/selfbot/examples
 [gateway docs]: https://docs.rs/serenity/*/serenity/gateway/index.html
 [guild]: https://discord.gg/serenity-rs
 [guild-badge]: https://img.shields.io/discord/381880193251409931.svg?style=flat-square&colorB=7289DA
