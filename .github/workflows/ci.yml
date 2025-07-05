@@ -276,3 +276,5 @@ jobs:
         run: cargo check -p e18_webhook
       - name: 'Check example 19'
         run: cargo check -p e19_interactions_endpoint
+      - name: 'Check example 20'
+        run: cargo check -p e20_self_bot_basic_ping_bot
