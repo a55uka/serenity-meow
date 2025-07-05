@@ -105,10 +105,10 @@ impl EventHandler for Handler {
 
 #[tokio::main]
 async fn main() {
-    // Login with a bot token from the environment
+    // Login with a user token from the environment
     let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
 
-    // Create a new instance of the Client, logging in as a bot.
+    // Create a new instance of the Client, logging in as a user.
     let mut client =
         Client::builder_self_bot(&token).event_handler(Handler).await.expect("Err creating client");
 
