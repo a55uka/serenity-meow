@@ -37,6 +37,7 @@ use crate::builder::{
     CreateChannel,
     CreateCommand,
     CreateScheduledEvent,
+    CreateSoundboard,
     CreateSticker,
     EditAutoModRule,
     EditCommandPermissions,
@@ -46,6 +47,7 @@ use crate::builder::{
     EditMember,
     EditRole,
     EditScheduledEvent,
+    EditSoundboard,
     EditSticker,
 };
 #[cfg(all(feature = "cache", feature = "model"))]
@@ -2572,6 +2574,76 @@ impl Guild {
     /// the request is not in the guild.
     pub async fn get_active_threads(&self, http: impl AsRef<Http>) -> Result<ThreadsData> {
         self.id.get_active_threads(http).await
+    }
+
+    /// Gets a soundboard sound from the guild.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Http`] if there is an error in the deserialization, or if the bot issuing
+    /// the request is not in the guild.
+    pub async fn get_soundboard(
+        self,
+        http: impl AsRef<Http>,
+        sound_id: SoundId,
+    ) -> Result<Soundboard> {
+        self.id.get_soundboard(http, sound_id).await
+    }
+
+    /// Gets all soundboard sounds from the guild.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Http`] if there is an error in the deserialization, or if the bot issuing
+    /// the request is not in the guild.
+    pub async fn get_soundboards(self, http: impl AsRef<Http>) -> Result<Vec<Soundboard>> {
+        self.id.get_soundboards(http).await
+    }
+
+    /// Creates a soundboard sound for the guild.
+    ///
+    /// # Errors
+    ///
+    /// See [`CreateSoundboard::execute`] for a list of possible errors.
+    ///
+    /// [`CreateSoundboard::execute`]: ../../builder/struct.CreateSoundboard.html#method.execute
+    pub async fn create_soundboard(
+        self,
+        cache_http: impl CacheHttp,
+        builder: CreateSoundboard<'_>,
+    ) -> Result<Soundboard> {
+        self.id.create_soundboard(cache_http, builder).await
+    }
+
+    /// Edits a soundboard sound for the guild.
+    ///
+    /// # Errors
+    ///
+    /// See [`EditSoundboard::execute`] for a list of possible errors.
+    ///
+    /// [`EditSoundboard::execute`]: ../../builder/struct.EditSoundboard.html#method.execute
+    pub async fn edit_soundboard(
+        self,
+        cache_http: impl CacheHttp,
+        sound_id: SoundId,
+        builder: EditSoundboard<'_>,
+    ) -> Result<Soundboard> {
+        self.id.edit_soundboard(cache_http, sound_id, builder).await
+    }
+
+    /// Deletes a soundboard sound for the guild.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Http`] if the current user lacks permission, or if a
+    /// soundboard sound with that Id does not exist.
+    pub async fn delete_soundboard(
+        self,
+        http: impl AsRef<Http>,
+        sound_id: SoundId,
+        audit_log_reason: Option<&str>,
+    ) -> Result<()> {
+        self.id.delete_soundboard(http, sound_id, audit_log_reason).await
     }
 }
 
